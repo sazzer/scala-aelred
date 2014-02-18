@@ -1,0 +1,1 @@
+web:    java -Dcom.twitter.finatra.config.env=production -Dcom.twitter.finatra.config.adminPort='' -Dcom.twitter.finatra.config.port=:$PORT -cp target/classes:target/dependency/* uk.co.grahamcox.aelred.webapp.App
