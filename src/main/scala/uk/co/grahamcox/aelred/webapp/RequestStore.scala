@@ -1,5 +1,9 @@
 package uk.co.grahamcox.aelred.webapp
 
+import com.twitter.finagle.{Service, SimpleFilter}
+import com.twitter.util.Future
+import com.twitter.finagle.http.{Request, Response}
+import com.twitter.app.App
 import scala.collection.mutable.HashMap
 import com.twitter.finagle.http.Request
 
@@ -51,3 +55,17 @@ object RequestStore {
         values(request) -= name
     }
 }
+
+/**
+ * Filter to manage the Request Store for the lifespan of requests
+ */
+class RequestStoreFilter extends SimpleFilter[Request, Response] with App {
+    def apply(request: Request, service: Service[Request, Response]) = {
+        RequestStore.startRequest(request)
+        val response = service(request)
+        RequestStore.stopRequest(request)
+
+        response
+    }
+}
+
