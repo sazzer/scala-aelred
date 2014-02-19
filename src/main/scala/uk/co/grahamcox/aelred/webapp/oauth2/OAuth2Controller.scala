@@ -1,6 +1,6 @@
 package uk.co.grahamcox.aelred.webapp.oauth2
 
-
+import uk.co.grahamcox.aelred.webapp.RequestStore
 import com.twitter.finatra._
 import com.twitter.finatra.ContentType._
 
@@ -76,6 +76,7 @@ class OAuth2Controller extends Controller {
      * @return The details of the Access Token
      */
     def resourceOwnerPasswordCredentialsGrant(request: Request): AccessTokenResponse = {
+        println(RequestStore.get(request, "Credentials"))
         val username = request.params.get("username") match {
             case Some(u) => u
             case None => throw new InvalidRequest(Some("Missing field: username"))

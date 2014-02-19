@@ -1,5 +1,6 @@
 package uk.co.grahamcox.aelred.webapp.authorization
 
+import uk.co.grahamcox.aelred.webapp.RequestStore
 import com.twitter.finagle.{Service, SimpleFilter}
 import com.twitter.util.Future
 import com.twitter.finagle.http.{Request, Response}
@@ -54,9 +55,22 @@ abstract class MethodAuthorizer(method: String) extends Authorizer {
 /**
  * Filter that can sort out the Authorization Header as needed
  */
-class AuthorizationFilter extends SimpleFilter[Request, Response] with App {
+class AuthorizationFilter(authorizers: Seq[Authorizer]) extends SimpleFilter[Request, Response] with App {
     def apply(request: Request, service: Service[Request, Response]) = {
-        println(request.authorization)
+        val credentials = (request.authorization match {
+            case Some(header) => (authorizers.map {
+                authorizer => authorizer.authorize(header)
+            }).filter {
+                credentials => {
+                    credentials.isDefined
+                }
+            }
+            case None => None
+        }) match {
+            case Some(head) :: _ => head
+            case _ => None
+        }
+        RequestStore.set(request, "Credentials", credentials)
         service(request)
     }
 }

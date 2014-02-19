@@ -2,7 +2,7 @@ package uk.co.grahamcox.aelred.webapp
 
 import com.twitter.finagle.{Service, SimpleFilter}
 import com.twitter.util.Future
-import com.twitter.finagle.http.{Request, Response}
+import com.twitter.finagle.http.{Request, Response, RequestProxy}
 import com.twitter.app.App
 import scala.collection.mutable.HashMap
 import com.twitter.finagle.http.Request
@@ -18,14 +18,14 @@ object RequestStore {
      * @param request The request to start handling
      */
     def startRequest(request: Request) {
-        values += (request -> HashMap.empty[String, Any])
+        values += (getInnerRequest(request) -> HashMap.empty[String, Any])
     }
     /**
      * Stop handling the request
      * @param request The request to stop handling
      */
     def stopRequest(request: Request) {
-        values -= request
+        values -= getInnerRequest(request)
     }
     /**
      * Add a new object to the store
@@ -34,7 +34,7 @@ object RequestStore {
      * @param val The value to store
      */
     def set(request: Request, name: String, value: Any) {
-        values(request) += (name -> value)
+        values(getInnerRequest(request)) += (name -> value)
     }
 
     /**
@@ -44,7 +44,7 @@ object RequestStore {
      * @return the value
      */
     def get(request: Request, name: String): Option[Any] = {
-        values(request).get(name)
+        values(getInnerRequest(request)).get(name)
     }
     /**
      * Remove an object to the store
@@ -52,7 +52,12 @@ object RequestStore {
      * @param name The name to store the object under
      */
     def remove(request: Request, name: String) {
-        values(request) -= name
+        values(getInnerRequest(request)) -= name
+    }
+
+    private def getInnerRequest(request: Request):Request = request match {
+        case proxy: RequestProxy => getInnerRequest(proxy.request)
+        case _ => request
     }
 }
 
