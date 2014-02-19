@@ -3,7 +3,7 @@ package uk.co.grahamcox.aelred.webapp
 import org.scalatest.FunSpec
 import org.scalatest.matchers.ShouldMatchers
 
-class DebugControllerSpec extends FunSpec with ShouldMatchers {
+class RouteSpec extends FunSpec with ShouldMatchers {
     describe("A Route of /a/b") {
         val route = new Route("/a/b")
 
