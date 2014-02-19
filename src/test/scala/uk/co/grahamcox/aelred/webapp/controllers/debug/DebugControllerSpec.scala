@@ -1,4 +1,4 @@
-package uk.co.grahamcox.aelred.webapp.controllers.debug
+package uk.co.grahamcox.aelred.webapp.debug
 
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers

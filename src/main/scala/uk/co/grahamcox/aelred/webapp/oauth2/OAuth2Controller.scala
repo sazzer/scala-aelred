@@ -1,4 +1,4 @@
-package uk.co.grahamcox.aelred.webapp.controllers.oauth2
+package uk.co.grahamcox.aelred.webapp.oauth2
 
 
 import com.twitter.finatra._

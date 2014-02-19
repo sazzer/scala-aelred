@@ -1,7 +1,17 @@
-package uk.co.grahamcox.aelred.webapp.controllers.debug
+package uk.co.grahamcox.aelred.webapp.debug
 
 import com.twitter.finatra._
 import com.twitter.finatra.ContentType._
+
+/**
+ * Case Class to represent the debug details to return
+ * @param groupId The Maven Group ID
+ * @param artifactId The Maven Artifact ID
+ * @param version The project version
+ * @param scalsVersion The Scala version
+ */
+class Debug(val groupId: String, val artifactId: String, val version: String, val scalaVersion: String)
+
 
 /**
  * Controller for access to Debug information
