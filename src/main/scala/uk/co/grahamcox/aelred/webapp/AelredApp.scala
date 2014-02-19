@@ -8,7 +8,7 @@ import uk.co.grahamcox.aelred.webapp.oauth2._
 /**
  * The core application. This is the actual server that does all of the work
  */
-object App extends FinatraServer {
+object AelredApp extends FinatraServer {
   // Register all of the controllers
   register(new DebugController())
   register(new OAuth2Controller())

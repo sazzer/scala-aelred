@@ -82,7 +82,7 @@
           <launchers>
             <launcher>
               <id>main</id>
-              <mainClass>uk.co.grahamcox.aelred.webapp.App</mainClass>
+              <mainClass>uk.co.grahamcox.aelred.webapp.AelredApp</mainClass>
             </launcher>
             <!-- you could define other launcher -->
           </launchers>
@@ -114,7 +114,7 @@
           </descriptorRefs>
           <archive>
             <manifest>
-              <mainClass>uk.co.grahamcox.aelred.webapp.App</mainClass>
+              <mainClass>uk.co.grahamcox.aelred.webapp.AelredApp</mainClass>
             </manifest>
           </archive>
         </configuration>
