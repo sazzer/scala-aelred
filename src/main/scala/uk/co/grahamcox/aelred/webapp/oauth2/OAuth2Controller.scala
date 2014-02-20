@@ -70,19 +70,7 @@ class OAuth2Controller(clientService: ClientService) extends Controller {
     }
     post("/oauth2/token") { 
         request => { 
-            val authorization = RequestStore.get(request, "Credentials")
-            val clientCredentials = authorization match {
-                case Some(cred:BasicCredentials)  => Some(ClientCredentials(cred.username, cred.password))
-                case _ => None
-            }
-
-            (clientCredentials.filterNot {
-                creds => clientService.isClientValid(creds)
-            }).foreach {
-                creds => {
-                    throw new InvalidClient
-                }
-            }
+            val clientDetails = getClientDetails(request)
 
             val accessToken = request.params.get("grant_type") match {
                 case Some("password") => resourceOwnerPasswordCredentialsGrant(request)
@@ -90,6 +78,26 @@ class OAuth2Controller(clientService: ClientService) extends Controller {
                 case None => throw new MissingGrantType
             }
             render.json(accessToken.toMap).toFuture
+        }
+    }
+
+    /**
+     * Get the Client Details for the request. If no client credentials are present
+     * in the request then None is returned. If the client credentials are present but
+     * not valid then an exception is raised instead
+     * @param request The request to use to get the details
+     * @return the client details if applicable
+     */
+    def getClientDetails(request: Request): Option[ClientDetails] = {
+        val authorization = RequestStore.get(request, "Credentials")
+        authorization match {
+            case Some(credentials: BasicCredentials) => {
+                clientService.getClientDetails(ClientCredentials(credentials.username, credentials.password)) match {
+                    case None => throw new InvalidClient
+                    case details => details
+                }
+            }
+            case _ => None
         }
     }
 

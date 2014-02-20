@@ -9,18 +9,35 @@ case class ClientCredentials(key: String, secret: String)
 
 /**
  * Representation of the details of a Client
+ * @param key the Client Key. 
+ * @param secret the Client Secret
  */
-class ClientDetails {
+class ClientDetails(val key: String, val secret: Option[String]) {
 }
 
 /**
  * Service to manage Clients with
  */
 class ClientService {
+    /** Mock map of client details */
+    private val details = Map("client" -> new ClientDetails("client", Some("secret")))
     /**
-     * Check if the credentials of a given Client are still valid
-     * @param credentials The credentials of the client
-     * @return True if the credentials are valid. False if not
+     * Get the Client Details for the given Client ID
+     * @param key The Client ID to get the details for
+     * @return the Client Details, if they can be loaded
      */
-    def isClientValid(credentials: ClientCredentials): Boolean = false
+    def getClientDetails(key: String): Option[ClientDetails] = details.get(key)
+    /**
+     * Get the Client Details for the given Client Credentials
+     * @param credentials The credentials of the client
+     * @return the Client Details, if they can be loaded
+     */
+    def getClientDetails(credentials: ClientCredentials): Option[ClientDetails] = {
+        getClientDetails(credentials.key).filter {
+            details => details.secret match {
+                case Some(secret) => secret == credentials.secret
+                case None => true
+            }
+        }
+    }
 }
