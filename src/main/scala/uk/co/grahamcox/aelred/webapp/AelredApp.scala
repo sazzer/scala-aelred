@@ -1,22 +1,27 @@
 package uk.co.grahamcox.aelred.webapp
 
+import scala.collection.JavaConversions._
 import com.twitter.finatra._
-import com.twitter.finatra.ContentType._
-import uk.co.grahamcox.aelred.webapp.debug._
-import uk.co.grahamcox.aelred.webapp.oauth2._
-import uk.co.grahamcox.aelred.oauth2._
-import uk.co.grahamcox.aelred.webapp.authorization._
+import org.springframework.context.support.ClassPathXmlApplicationContext
+import com.twitter.finagle.Filter
+import com.twitter.finagle.http.{Request, Response}
 
 /**
  * The core application. This is the actual server that does all of the work
  */
 object AelredApp extends FinatraServer {
-    val clientService = new ClientService()
+    def startup() {
+        val context = new ClassPathXmlApplicationContext("classpath:/uk/co/grahamcox/aelred/spring/aelred.xml")
 
-    addFilter(new RequestStoreFilter)
-    addFilter(new AuthorizationFilter(Seq(new BasicAuthorizer)))
-    // Register all of the controllers
-    register(new DebugController())
-    register(new OAuth2Controller(clientService))
+        context.getBean("filters", classOf[Seq[Filter[Request, Response, Request, Response]]]).foreach { filter => 
+            addFilter(filter)
+        }
+
+        context.getBeansOfType(classOf[Controller]).foreach { case (name, controller) =>
+            register(controller)
+        }
+    }
+
+    startup()
 }
 
