@@ -10,6 +10,7 @@
                    <bean class="uk.co.grahamcox.aelred.webapp.authorization.AuthorizationFilter">
                        <constructor-arg>
                            <list>
+                               <bean class="uk.co.grahamcox.aelred.webapp.authorization.BasicAuthorizer" />
                            </list>
                        </constructor-arg>
                    </bean>

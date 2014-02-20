@@ -67,10 +67,13 @@ class AuthorizationFilter(authorizers: Seq[Authorizer]) extends SimpleFilter[Req
             }
             case None => None
         }) match {
-            case Some(head) :: _ => head
+            case Some(head) :: _ => Some(head)
             case _ => None
         }
-        RequestStore.set(request, "Credentials", credentials)
+
+        credentials.foreach { creds => 
+            RequestStore.set(request, "Credentials", creds)
+        }
         service(request)
     }
 }
