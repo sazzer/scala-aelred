@@ -1,5 +1,6 @@
 package uk.co.grahamcox.aelred.webapp.oauth2
 
+import uk.co.grahamcox.aelred.oauth2._
 import uk.co.grahamcox.aelred.webapp.RequestStore
 import com.twitter.finatra._
 import com.twitter.finatra.ContentType._
@@ -51,7 +52,7 @@ class MissingGrantType extends AccessTokenException("invalid_request", Some("Mis
 /**
  * Controller for OAuth 2.0 Requests
  */
-class OAuth2Controller extends Controller {
+class OAuth2Controller(clientService: ClientService) extends Controller {
     error { request =>
         request.error match {
             case Some(e:AccessTokenException) =>
