@@ -1,6 +1,7 @@
 package uk.co.grahamcox.aelred.webapp.oauth2
 
 import uk.co.grahamcox.aelred.oauth2._
+import uk.co.grahamcox.aelred.webapp.authorization._
 import uk.co.grahamcox.aelred.webapp.RequestStore
 import com.twitter.finatra._
 import com.twitter.finatra.ContentType._
@@ -45,6 +46,11 @@ class UnsupportedGrantType extends AccessTokenException("unsupported_grant_type"
 class InvalidRequest(errorDescription: Option[String]) extends AccessTokenException("invalid_request", errorDescription)
 
 /**
+ * Error indicating that the client credentials were invalid
+ */
+class InvalidClient() extends AccessTokenException("invalid_client", Some("The client credentials were invalid"))
+
+/**
  * Error that means that the grant type was missing
  */
 class MissingGrantType extends AccessTokenException("invalid_request", Some("Missing field: grant_type"))
@@ -55,6 +61,8 @@ class MissingGrantType extends AccessTokenException("invalid_request", Some("Mis
 class OAuth2Controller(clientService: ClientService) extends Controller {
     error { request =>
         request.error match {
+            case Some(e:InvalidClient) =>
+                render.status(401).json(new ErrorResponse(error = e.error, errorDescription = e.errorDescription).toMap).toFuture
             case Some(e:AccessTokenException) =>
                 render.status(400).json(new ErrorResponse(error = e.error, errorDescription = e.errorDescription).toMap).toFuture
             case _ => render.status(500).plain("Unexpected error").toFuture
@@ -62,6 +70,20 @@ class OAuth2Controller(clientService: ClientService) extends Controller {
     }
     post("/oauth2/token") { 
         request => { 
+            val authorization = RequestStore.get(request, "Credentials")
+            val clientCredentials = authorization match {
+                case Some(cred:BasicCredentials)  => Some(ClientCredentials(cred.username, cred.password))
+                case _ => None
+            }
+
+            (clientCredentials.filterNot {
+                creds => clientService.isClientValid(creds)
+            }).foreach {
+                creds => {
+                    throw new InvalidClient
+                }
+            }
+
             val accessToken = request.params.get("grant_type") match {
                 case Some("password") => resourceOwnerPasswordCredentialsGrant(request)
                 case Some(_) => throw new UnsupportedGrantType
@@ -77,7 +99,6 @@ class OAuth2Controller(clientService: ClientService) extends Controller {
      * @return The details of the Access Token
      */
     def resourceOwnerPasswordCredentialsGrant(request: Request): AccessTokenResponse = {
-        println(RequestStore.get(request, "Credentials"))
         val username = request.params.get("username") match {
             case Some(u) => u
             case None => throw new InvalidRequest(Some("Missing field: username"))
