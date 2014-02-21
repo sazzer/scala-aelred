@@ -74,6 +74,7 @@ class OAuth2Controller(clientService: ClientService) extends Controller {
 
             val accessToken = request.params.get("grant_type") match {
                 case Some("password") => resourceOwnerPasswordCredentialsGrant(request, clientDetails)
+                case Some("client_credentials") => clientCredentialsGrant(request, clientDetails)
                 case Some(_) => throw new UnsupportedGrantType
                 case None => throw new MissingGrantType
             }
@@ -109,8 +110,8 @@ class OAuth2Controller(clientService: ClientService) extends Controller {
      */
     def resourceOwnerPasswordCredentialsGrant(request: Request, clientDetails: Option[ClientDetails]): AccessTokenResponse = {
         clientDetails match {
-            case Some(cd) if !cd.supports(SupportedAuthTypes.ResourceOwnerPasswordCredentials) => throw new InvalidClient
-            case _ => {}
+            case Some(cd) if cd.supports(SupportedAuthTypes.ResourceOwnerPasswordCredentials) => {}
+            case _ => throw new InvalidClient
         }
         val username = request.params.get("username") match {
             case Some(u) => u
@@ -119,6 +120,26 @@ class OAuth2Controller(clientService: ClientService) extends Controller {
         val password = request.params.get("password") match {
             case Some(p) => p
             case None => throw new InvalidRequest(Some("Missing field: password"))
+        }
+        val scopes = request.params.getOrElse("scope", "").split(" ")
+
+        new AccessTokenResponse(accessToken = "abcdef",
+            tokenType = "bearer",
+            refreshToken = Some("ghijkl"),
+            expires = Some(3600),
+            scope = Some(scopes.mkString(" ")))
+    }
+
+    /**
+     * Handle a request to perform a Client Credentials Grant - taken from the OAuth 2.0 Spec section 4.4
+     * @param request The request to service
+     * @param clientDetails The client details, if available
+     * @return The details of the Access Token
+     */
+    def clientCredentialsGrant(request: Request, clientDetails: Option[ClientDetails]): AccessTokenResponse = {
+        clientDetails match {
+            case Some(cd) if cd.supports(SupportedAuthTypes.ClientCredentials) => {}
+            case _ => throw new InvalidClient
         }
         val scopes = request.params.getOrElse("scope", "").split(" ")
 

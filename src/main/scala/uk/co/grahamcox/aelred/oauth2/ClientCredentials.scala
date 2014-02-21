@@ -39,7 +39,7 @@ class ClientDetails(val key: String, val secret: Option[String], val supportedAu
  */
 class ClientService {
     /** Mock map of client details */
-    private val details = Map("client" -> new ClientDetails("client", Some("secret")))
+    private val details = Map("client" -> new ClientDetails("client", Some("secret"), Seq(SupportedAuthTypes.ClientCredentials)))
     /**
      * Get the Client Details for the given Client ID
      * @param key The Client ID to get the details for
