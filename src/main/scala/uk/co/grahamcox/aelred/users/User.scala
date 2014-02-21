@@ -1,5 +1,7 @@
 package uk.co.grahamcox.aelred.users
 
+import java.security.MessageDigest
+
 /**
  * Representation of a User ID
  * @param id The actual User ID
@@ -16,13 +18,15 @@ case class Password(val encoded: String)
  * Companion object for passwords
  */
 object Password {
+    private val Sha1 = MessageDigest.getInstance("SHA-1")
     /**
      * Construct a password by encoding the provided plain text password
      * @param plaintext the password to encode
      * @return the Password
      */
     def encode(plaintext: String) = {
-        new Password(plaintext)
+        val encoded = Sha1.digest(plaintext.getBytes("UTF-8")).map("%02x".format(_)).mkString
+        new Password(encoded)
     }
 }
 
