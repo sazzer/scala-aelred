@@ -10,5 +10,6 @@
        </bean>
 
        <import resource="oauth2/oauth2.xml" />
+       <import resource="users/users.xml" />
        <import resource="webapp/webapp.xml" />
 </beans>       

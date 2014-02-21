@@ -1,6 +1,7 @@
 package uk.co.grahamcox.aelred.webapp.oauth2
 
 import uk.co.grahamcox.aelred.oauth2._
+import uk.co.grahamcox.aelred.users._
 import uk.co.grahamcox.aelred.webapp.authorization._
 import uk.co.grahamcox.aelred.webapp.RequestStore
 import com.twitter.finatra._
@@ -48,7 +49,12 @@ class InvalidRequest(errorDescription: Option[String]) extends AccessTokenExcept
 /**
  * Error indicating that the client credentials were invalid
  */
-class InvalidClient() extends AccessTokenException("invalid_client", Some("The client credentials were invalid"))
+class InvalidClient extends AccessTokenException("invalid_client", Some("The client credentials were invalid"))
+
+/**
+ * Error indicating that the client credentials were valid but unauthorized for this request
+ */
+class UnauthorizedClient extends AccessTokenException("unauthorized_client", Some("The client credentials were unauthorized for this request"))
 
 /**
  * Error that means that the grant type was missing
@@ -56,9 +62,16 @@ class InvalidClient() extends AccessTokenException("invalid_client", Some("The c
 class MissingGrantType extends AccessTokenException("invalid_request", Some("Missing field: grant_type"))
 
 /**
- * Controller for OAuth 2.0 Requests
+ * Error indicating that the authorization request was invalid
  */
-class OAuth2Controller(clientService: ClientService) extends Controller {
+class InvalidGrant extends AccessTokenException("invalid_grant")
+
+/**
+ * Controller for OAuth 2.0 Requests
+ * @param clientService The OAuth 2.0 Client Service
+ * @param userService The User Service
+ */
+class OAuth2Controller(clientService: ClientService, userService: UserService) extends Controller {
     error { request =>
         request.error match {
             case Some(e:InvalidClient) =>
@@ -111,6 +124,7 @@ class OAuth2Controller(clientService: ClientService) extends Controller {
     def resourceOwnerPasswordCredentialsGrant(request: Request, clientDetails: Option[ClientDetails]): AccessTokenResponse = {
         clientDetails match {
             case Some(cd) if cd.supports(SupportedAuthTypes.ResourceOwnerPasswordCredentials) => {}
+            case Some(cd) => throw new UnauthorizedClient
             case _ => throw new InvalidClient
         }
         val username = request.params.get("username") match {
@@ -123,11 +137,15 @@ class OAuth2Controller(clientService: ClientService) extends Controller {
         }
         val scopes = request.params.getOrElse("scope", "").split(" ")
 
-        new AccessTokenResponse(accessToken = "abcdef",
-            tokenType = "bearer",
-            refreshToken = Some("ghijkl"),
-            expires = Some(3600),
-            scope = Some(scopes.mkString(" ")))
+        userService.authenticate(username, Password.encode(password)) match {
+            case Some(user) => new AccessTokenResponse(accessToken = "abcdef",
+                tokenType = "bearer",
+                refreshToken = Some("ghijkl"),
+                expires = Some(3600),
+                scope = Some(scopes.mkString(" ")))
+            case None => throw new InvalidGrant
+        }
+
     }
 
     /**
@@ -139,6 +157,7 @@ class OAuth2Controller(clientService: ClientService) extends Controller {
     def clientCredentialsGrant(request: Request, clientDetails: Option[ClientDetails]): AccessTokenResponse = {
         clientDetails match {
             case Some(cd) if cd.supports(SupportedAuthTypes.ClientCredentials) => {}
+            case Some(cd) => throw new UnauthorizedClient
             case _ => throw new InvalidClient
         }
         val scopes = request.params.getOrElse("scope", "").split(" ")
