@@ -155,18 +155,25 @@ class OAuth2Controller(clientService: ClientService, userService: UserService) e
      * @return The details of the Access Token
      */
     def clientCredentialsGrant(request: Request, clientDetails: Option[ClientDetails]): AccessTokenResponse = {
-        clientDetails match {
-            case Some(cd) if cd.supports(SupportedAuthTypes.ClientCredentials) => {}
+        val userId = clientDetails match {
+            case Some(cd) if cd.supports(SupportedAuthTypes.ClientCredentials) => 
+                cd.clientCredentialsUserId match {
+                    case Some(userId) => userId
+                    case None => throw new UnauthorizedClient
+                }
             case Some(cd) => throw new UnauthorizedClient
             case _ => throw new InvalidClient
         }
         val scopes = request.params.getOrElse("scope", "").split(" ")
 
-        new AccessTokenResponse(accessToken = "abcdef",
-            tokenType = "bearer",
-            refreshToken = Some("ghijkl"),
-            expires = Some(3600),
-            scope = Some(scopes.mkString(" ")))
+        userService.getById(userId) match {
+            case Some(user) => new AccessTokenResponse(accessToken = "abcdef",
+                tokenType = "bearer",
+                refreshToken = Some("ghijkl"),
+                expires = Some(3600),
+                scope = Some(scopes.mkString(" ")))
+            case None => throw new InvalidGrant
+        }
     }
 }
 

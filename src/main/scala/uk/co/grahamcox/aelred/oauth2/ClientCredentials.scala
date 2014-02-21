@@ -1,5 +1,7 @@
 package uk.co.grahamcox.aelred.oauth2
 
+import uk.co.grahamcox.aelred.users._
+
 /**
  * Representation of the Credentials of a Client
  * @param key the Client Key. 
@@ -20,12 +22,13 @@ object SupportedAuthTypes extends Enumeration {
 }
 
 import SupportedAuthTypes._
+
 /**
  * Representation of the details of a Client
  * @param key the Client Key. 
  * @param secret the Client Secret
  */
-class ClientDetails(val key: String, val secret: Option[String], val supportedAuthTypes: Seq[SupportedAuthTypes] = Nil) {
+class ClientDetails(val key: String, val secret: Option[String], val supportedAuthTypes: Seq[SupportedAuthTypes] = Nil, val clientCredentialsUserId: Option[UserId] = None) {
     /**
      * Check if this client supports the requested authentication type
      * @param authType The authentication type to check for
@@ -39,7 +42,7 @@ class ClientDetails(val key: String, val secret: Option[String], val supportedAu
  */
 class ClientService {
     /** Mock map of client details */
-    private val details = Map("client" -> new ClientDetails("client", Some("secret"), Seq(SupportedAuthTypes.ClientCredentials, SupportedAuthTypes.ResourceOwnerPasswordCredentials)))
+    private val details = Map("client" -> new ClientDetails("client", Some("secret"), Seq(SupportedAuthTypes.ClientCredentials, SupportedAuthTypes.ResourceOwnerPasswordCredentials), Some(UserId("2"))))
     /**
      * Get the Client Details for the given Client ID
      * @param key The Client ID to get the details for
