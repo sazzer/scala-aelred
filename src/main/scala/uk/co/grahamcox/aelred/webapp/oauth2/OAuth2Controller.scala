@@ -73,7 +73,7 @@ class OAuth2Controller(clientService: ClientService) extends Controller {
             val clientDetails = getClientDetails(request)
 
             val accessToken = request.params.get("grant_type") match {
-                case Some("password") => resourceOwnerPasswordCredentialsGrant(request)
+                case Some("password") => resourceOwnerPasswordCredentialsGrant(request, clientDetails)
                 case Some(_) => throw new UnsupportedGrantType
                 case None => throw new MissingGrantType
             }
@@ -104,9 +104,14 @@ class OAuth2Controller(clientService: ClientService) extends Controller {
     /**
      * Handle a request to perform a Resource Owner Password Credentials Grant - taken from the OAuth 2.0 Spec section 4.3
      * @param request The request to service
+     * @param clientDetails The client details, if available
      * @return The details of the Access Token
      */
-    def resourceOwnerPasswordCredentialsGrant(request: Request): AccessTokenResponse = {
+    def resourceOwnerPasswordCredentialsGrant(request: Request, clientDetails: Option[ClientDetails]): AccessTokenResponse = {
+        clientDetails match {
+            case Some(cd) if !cd.supports(SupportedAuthTypes.ResourceOwnerPasswordCredentials) => throw new InvalidClient
+            case _ => {}
+        }
         val username = request.params.get("username") match {
             case Some(u) => u
             case None => throw new InvalidRequest(Some("Missing field: username"))

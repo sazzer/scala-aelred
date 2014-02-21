@@ -8,11 +8,30 @@ package uk.co.grahamcox.aelred.oauth2
 case class ClientCredentials(key: String, secret: String)
 
 /**
+ * Enumeration of the supported authentication types supported by a client
+ */
+object SupportedAuthTypes extends Enumeration {
+    type SupportedAuthTypes = Value
+    val AuthorizationCode, 
+        Implicit, 
+        ResourceOwnerPasswordCredentials, 
+        ClientCredentials, 
+        Refresh = Value
+}
+
+import SupportedAuthTypes._
+/**
  * Representation of the details of a Client
  * @param key the Client Key. 
  * @param secret the Client Secret
  */
-class ClientDetails(val key: String, val secret: Option[String]) {
+class ClientDetails(val key: String, val secret: Option[String], val supportedAuthTypes: Seq[SupportedAuthTypes] = Nil) {
+    /**
+     * Check if this client supports the requested authentication type
+     * @param authType The authentication type to check for
+     * @return True if it is supported. False if not
+     */
+    def supports(authType: SupportedAuthTypes): Boolean = supportedAuthTypes.contains(authType)
 }
 
 /**
