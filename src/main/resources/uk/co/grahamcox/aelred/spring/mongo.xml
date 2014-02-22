@@ -3,11 +3,6 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd">
 
-       <bean id="oauth2ClientDao" class="uk.co.grahamcox.aelred.oauth2.ClientDao">
-           <constructor-arg ref="mongoDB" />
-       </bean>
-       <bean id="oauth2ClientService" class="uk.co.grahamcox.aelred.oauth2.ClientService">
-           <constructor-arg ref="oauth2ClientDao" />
-       </bean>
+       <bean id="mongoDB" class="uk.co.grahamcox.aelred.MongoFactory" />
 </beans>       
 

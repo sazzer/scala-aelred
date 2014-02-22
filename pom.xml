@@ -67,6 +67,13 @@
         <artifactId>spring-scala_2.10</artifactId>
         <version>1.0.0.RC1</version>
     </dependency>
+
+    <dependency>
+        <groupId>org.mongodb</groupId>
+        <artifactId>casbah_2.10</artifactId>
+        <version>2.7.0-RC0</version>
+        <type>pom</type>
+    </dependency>
   </dependencies>
 
   <!-- END DEPENDENCIES -->

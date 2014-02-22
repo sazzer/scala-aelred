@@ -40,7 +40,7 @@ class ClientDetails(val key: String, val secret: Option[String], val supportedAu
 /**
  * Service to manage Clients with
  */
-class ClientService {
+class ClientService(clientDao: ClientDao) {
     /** Mock map of client details */
     private val details = Map("client" -> new ClientDetails("client", Some("secret"), Seq(SupportedAuthTypes.ClientCredentials, SupportedAuthTypes.ResourceOwnerPasswordCredentials), Some(UserId("2"))))
     /**
@@ -48,7 +48,7 @@ class ClientService {
      * @param key The Client ID to get the details for
      * @return the Client Details, if they can be loaded
      */
-    def getClientDetails(key: String): Option[ClientDetails] = details.get(key)
+    def getClientDetails(key: String): Option[ClientDetails] = clientDao.getByKey(key)
     /**
      * Get the Client Details for the given Client Credentials
      * @param credentials The credentials of the client
